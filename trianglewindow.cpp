@@ -40,6 +40,11 @@ TriangleWindow::TriangleWindow(bool enableLogger, QWindow *parent)
     : OpenGLWindow(enableLogger, parent)
     , m_program(nullptr)
     , m_frame(0) {
+    QSurfaceFormat format(QSurfaceFormat::DebugContext);
+    format.setSamples(16);
+    format.setRenderableType(QSurfaceFormat::OpenGL);
+    format.setSwapBehavior(QSurfaceFormat::TripleBuffer);
+    setFormat(format);
 }
 
 void TriangleWindow::initialize() {
