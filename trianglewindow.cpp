@@ -6,13 +6,13 @@
 
 namespace {
 
-static const GLfloat vertices[] = {
+const GLfloat vertices[] = {
     0, std::sqrt(2)/2,
     -0.5, -0.5,
     0.5, -0.5
 };
 
-static const GLfloat colors[] = {
+const GLfloat colors[] = {
     1, 0, 0,
     0, 1, 0,
     0, 0, 1
@@ -33,7 +33,7 @@ RenderData::RenderData() {
     m_baseMatrix.translate(0, 0, -2);
 }
 
-static const RenderData renderData;
+const RenderData renderData;
 }
 
 TriangleWindow::TriangleWindow(bool enableLogger, QWindow *parent)
