@@ -20,3 +20,10 @@ SOURCES += \
 HEADERS += \
         openglwindow.h \
     trianglewindow.h
+
+DISTFILES += \
+    vertexshader.vsh \
+    fragmetshader.fsh
+
+RESOURCES += \
+    resources.qrc

@@ -9,7 +9,7 @@ class TriangleWindow : public OpenGLWindow {
     Q_OBJECT
 
 public:
-    TriangleWindow(bool enableLogger = false, QWindow *parent = nullptr);
+    explicit TriangleWindow(bool enableLogger = false, QWindow *parent = nullptr);
 
     void initialize() override;
     void render() override;
