@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
     format.setSwapBehavior(QSurfaceFormat::TripleBuffer);
 
     TriangleWindow window(true);
-    window.setTitle("LearnOpenGL");
+    window.setTitle(QStringLiteral("LearnOpenGL"));
     QObject::connect(&window, &TriangleWindow::messageLogged, [](const auto &message) { qDebug() << message; });
     window.setFormat(format);
     window.resize(800, 600);

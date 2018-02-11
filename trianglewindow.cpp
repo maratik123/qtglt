@@ -44,17 +44,17 @@ TriangleWindow::TriangleWindow(bool enableLogger, QWindow *parent)
 
 void TriangleWindow::initialize() {
     m_program = new QOpenGLShaderProgram(this);
-    m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/vertexshader.vsh");
-    m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/fragmentshader.fsh");
+    m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, QStringLiteral(":/shaders/vertexshader.vsh"));
+    m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, QStringLiteral(":/shaders/fragmentshader.fsh"));
     m_program->link();
-    m_posAttr = m_program->attributeLocation("posAttr");
-    m_colAttr = m_program->attributeLocation("colAttr");
-    m_matrixUniform = m_program->uniformLocation("matrix");
+    m_posAttr = m_program->attributeLocation(QStringLiteral("posAttr"));
+    m_colAttr = m_program->attributeLocation(QStringLiteral("colAttr"));
+    m_matrixUniform = m_program->uniformLocation(QStringLiteral("matrix"));
 }
 
 void TriangleWindow::render() {
-    const qreal retinaScale = devicePixelRatio();
-    glViewport(0, 0, width() * retinaScale, height() * retinaScale);
+    const QSize &sz = size() * devicePixelRatio();
+    glViewport(0, 0, sz.width(), sz.height());
 
     glClear(GL_COLOR_BUFFER_BIT);
 
