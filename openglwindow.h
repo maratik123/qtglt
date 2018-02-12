@@ -15,11 +15,6 @@ public:
     explicit OpenGLWindow(bool enableLogger = false, QWindow *parent = nullptr);
     ~OpenGLWindow();
 
-    virtual void render(const QPainter &/*painter*/) {}
-    virtual void render();
-
-    virtual void initialize() {}
-
     void setAnimation(bool animating);
 
 public slots:
@@ -34,7 +29,16 @@ protected:
 
     void exposeEvent(QExposeEvent */*event*/) override { renderNow(); }
 
+    virtual void render(const QPainter &/*painter*/) {}
+    virtual void render();
+
+    virtual void initialize() {}
+
+    virtual void deinitialize() {}
+
 private:
+    void deinitializeNow();
+
     bool m_update_pending;
     bool m_animating;
     bool m_enableLogger;

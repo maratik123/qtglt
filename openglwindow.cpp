@@ -41,9 +41,13 @@ bool OpenGLWindow::event(QEvent *event) {
         m_update_pending = false;
         renderNow();
         return true;
+    case QEvent::Close:
+        deinitializeNow();
+        break;
     default:
-        return QWindow::event(event);
+        break;
     }
+    return QWindow::event(event);
 }
 
 void OpenGLWindow::renderNow() {
@@ -89,6 +93,14 @@ void OpenGLWindow::setAnimation(bool animating) {
     if (animating) {
         renderLater();
     }
+}
+
+void OpenGLWindow::deinitializeNow() {
+    if (m_context == nullptr) {
+        return;
+    }
+    m_context->makeCurrent(this);
+    deinitialize();
 }
 
 OpenGLWindow::~OpenGLWindow() {
