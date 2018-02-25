@@ -5,12 +5,14 @@
 #include <QHash>
 #include <QCommandLineParser>
 #include <QStringBuilder>
+#include <functional>
 
 namespace {
+
 template<class T>
-int startApp() {
+int startApp(const QString &applicationName) {
     T window(true);
-    window.setTitle(QStringLiteral("LearnOpenGL"));
+    window.setTitle(applicationName);
     QObject::connect(&window, &T::messageLogged, [](const auto &message) { qDebug() << message; });
     window.resize(800, 600);
     window.show();
@@ -22,57 +24,86 @@ int startApp() {
 
 class StartupFactory {
 public:
-    StartupFactory();
-    int run(const QString &code) const;
-    const QHash<QString, int (*)()> &map() const { return m_map; }
+    explicit StartupFactory(const QString &defaultWindow);
+    int run(const QString &code, const QString &applicationName) const;
+    QString concatenateKeys(const QString &delimiter, const QString &prefix = QString(), const QString &postfix = QString()) const;
 private:
-    QHash<QString, int (*)()> m_map;
+    int concatenatedKeysSize(const QString &delimiter, const QString &prefix, const QString &postfix) const;
+
+    QHash<QString, std::function<int(const QString &)>> m_map;
 };
 
-StartupFactory::StartupFactory() {
-#define REGISTER_STARTUP(Func) m_map[QStringLiteral(#Func)] = &startApp<Func>
+#define REGISTER_STARTUP(Func) std::make_pair(QStringLiteral(#Func), startApp<Func>)
 
-    REGISTER_STARTUP(TriangleWindow);
+StartupFactory::StartupFactory(const QString &defaultWindow) :
+    m_map({
+        REGISTER_STARTUP(TriangleWindow),
+        std::make_pair(defaultWindow, startApp<TriangleWindow>)
+        }) {}
 
 #undef REGISTER_STARTUP
-}
 
-int StartupFactory::run(const QString &code) const {
+int StartupFactory::run(const QString &code, const QString &applicationName) const {
     if (m_map.contains(code)) {
-        return (*m_map[code])();
+        return m_map[code](applicationName);
     }
     qCritical() << "Window:" << code << "is not exists";
     qCritical() << "Exiting";
     return EXIT_FAILURE;
 }
 
-const StartupFactory startupFactory;
+int StartupFactory::concatenatedKeysSize(const QString &delimiter, const QString &prefix, const QString &postfix) const {
+    int result = prefix.size() + (m_map.size() - 1) * delimiter.size() + postfix.size();
+    const auto &end = m_map.cend();
+    for (auto it = m_map.cbegin(); it != end; ++it) {
+        result += it.key().size();
+    }
+    return result;
+}
+
+QString StartupFactory::concatenateKeys(const QString &delimiter, const QString &prefix, const QString &postfix) const {
+    QString availableWindows;
+    availableWindows.reserve(concatenatedKeysSize(delimiter, prefix, postfix));
+    availableWindows += prefix;
+    const auto &end = m_map.cend();
+    auto it = m_map.cbegin();
+    if (it != end) {
+        availableWindows += it.key();
+        for(++it; it != end; ++it) {
+            availableWindows += delimiter % it.key();
+        }
+    }
+    availableWindows += postfix;
+    return availableWindows;
+}
+
 }
 
 int main(int argc, char *argv[]) {
-    QGuiApplication app(argc, argv);
-    QGuiApplication::setApplicationName(QStringLiteral("LearnOpenGL"));
+    const QGuiApplication app(argc, argv);
+
+    const QString &applicationName = QStringLiteral("LearnOpenGL");
+    const QString &defaultWindow = QStringLiteral("Default");
+
+    const StartupFactory startupFactory(defaultWindow);
+
+    QGuiApplication::setApplicationName(applicationName);
     QGuiApplication::setApplicationVersion(QStringLiteral("1.0"));
 
     QCommandLineParser parser;
-    parser.setApplicationDescription(QStringLiteral("Run LearnOpenGL"));
+    parser.setApplicationDescription(QLatin1String("Run ") % applicationName);
     parser.addHelpOption();
     parser.addVersionOption();
 
-    QString availableWindows(QLatin1Char('['));
-    const auto &map = startupFactory.map();
-    for(auto it = map.keyBegin(); it != map.keyEnd(); ++it) {
-        availableWindows += *it;
-    }
-    availableWindows += QLatin1Char(']');
-    parser.addPositionalArgument(QStringLiteral("window"), QStringLiteral("Window to show"), availableWindows);
+    parser.addPositionalArgument(
+                QStringLiteral("window"),
+                QLatin1String("Window to show: \n\t  ") % startupFactory.concatenateKeys(QStringLiteral("\n\t| ")),
+                QStringLiteral("[window]"));
 
     parser.process(app);
 
     const QStringList &args = parser.positionalArguments();
-    const QString &windowName = args.size() > 0
-            ? args[0]
-            : QStringLiteral("TriangleWindow");
+    const QString &windowName = args.size() > 0 ? args[0] : defaultWindow;
 
-    return startupFactory.run(windowName);
+    return startupFactory.run(windowName, applicationName);
 }
